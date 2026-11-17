@@ -277,3 +277,39 @@ The layers alternate between gzip, bzip2 and tar several times before the final 
 Password: qQYQiHOBPR8zR61qxYqX45quvihF2uzk
 
 What I learned: Never trust a file's name. file tells you what it really is, and repeating a check-then-unpack loop works for as many layers as there are.
+Bandit Level 13 → Level 14
+
+Challenge: The password for the next level is stored in /etc/bandit_pass/bandit14 and can only be read by user bandit14. There's no password this time. Instead, the home directory contains a private SSH key that can be used to log in as bandit14.
+
+Solution:
+
+On the server, logged in as bandit13:
+
+bash
+ls -l
+cat sshkey.private
+
+On my own machine, after pasting the key into a new file:
+
+bash
+nano sshkey.private
+chmod 600 sshkey.private
+ssh -i sshkey.private bandit14@bandit.labs.overthewire.org -p 2220
+
+Once logged in as bandit14:
+
+bash
+cat /etc/bandit_pass/bandit14
+
+Explanation:
+
+ls -l shows sshkey.private is owned by bandit14 with group bandit13, and the group has read permission, so I can read it as bandit13
+cat prints the key, which is plain text between -----BEGIN ... PRIVATE KEY----- and -----END ... PRIVATE KEY-----
+Trying ssh -i sshkey.private bandit14@localhost -p 2220 from the server fails, because the game blocks connections from the server to itself, so the login has to start from my own machine
+I created a file on my machine, pasted the whole key into it, and used -i to tell SSH to log in with that key instead of a password
+chmod 600 restricts the file to my user only, because SSH rejects private keys that other users can read
+As bandit14, I can read /etc/bandit_pass/bandit14, which holds the password used for the next level
+
+Password: not applicable, ssh.txt file contains private key value needed to auth and log into bandit14.
+
+What I learned: SSH can log in with a private key instead of a password, and key files need tight permissions (chmod 600). I also learned that a key generated on my own machine wouldn't work, because the server only accepts keys that were set up on the account in advance.
