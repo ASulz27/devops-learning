@@ -1,16 +1,17 @@
 Bandit Wargames Level 1-20 Commands & Answers
-
-Intro: 
+Intro
 
 Command: ssh bandit0@bandit.labs.overthewire.org -p 2220
 
-Answer: Host, Port number, username and password have all been provided. Follow this format to solve this level.
+Answer: Host, port number, username and password have all been provided. Follow this format to solve this level.
 
+bash
 ssh (user)@host -p (port number)
-
 Bandit Level 1 → Level 2
 
 Challenge: The password is stored in a file called - in the home directory.
+
+Command: ssh bandit1@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -31,6 +32,8 @@ What I learned: A leading - makes the shell and most commands think it's an opti
 Bandit Level 2 → Level 3
 
 Challenge: The password is stored in a file called spaces in this filename in the home directory.
+
+Command: ssh bandit2@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -53,6 +56,8 @@ Bandit Level 3 → Level 4
 
 Challenge: The password is stored in a hidden file in the inhere directory.
 
+Command: ssh bandit3@bandit.labs.overthewire.org -p 2220
+
 Solution:
 
 bash
@@ -74,6 +79,8 @@ What I learned: Hidden files in Linux are just files that start with a dot, and 
 Bandit Level 4 → Level 5
 
 Challenge: The password is stored in the only human-readable file in the inhere directory.
+
+Command: ssh bandit4@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -100,6 +107,8 @@ Challenge: Find a file somewhere under inhere with these properties:
 Human-readable
 1033 bytes in size
 Not executable
+
+Command: ssh bandit5@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -128,6 +137,8 @@ Owned by user bandit7
 Owned by group bandit6
 33 bytes in size
 
+Command: ssh bandit6@bandit.labs.overthewire.org -p 2220
+
 Solution:
 
 bash
@@ -150,6 +161,8 @@ Bandit Level 7 → Level 8
 
 Challenge: The password is stored in data.txt next to the word millionth.
 
+Command: ssh bandit7@bandit.labs.overthewire.org -p 2220
+
 Solution:
 
 bash
@@ -168,6 +181,8 @@ What I learned: grep is the quickest way to pull one line out of a big file.
 Bandit Level 8 → Level 9
 
 Challenge: The password is stored in data.txt and is the only line of text that occurs exactly once.
+
+Command: ssh bandit8@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -189,6 +204,8 @@ Bandit Level 9 → Level 10
 
 Challenge: The password is stored in data.txt in one of the few human-readable strings, preceded by several = characters.
 
+Command: ssh bandit9@bandit.labs.overthewire.org -p 2220
+
 Solution:
 
 bash
@@ -209,6 +226,8 @@ Bandit Level 10 → Level 11
 
 Challenge: The password is stored in data.txt, which contains base64 encoded data.
 
+Command: ssh bandit10@bandit.labs.overthewire.org -p 2220
+
 Solution:
 
 bash
@@ -227,6 +246,8 @@ What I learned: Base64 hides nothing, because anyone can decode it with a single
 Bandit Level 11 → Level 12
 
 Challenge: The password is stored in data.txt, where all lowercase (a-z) and uppercase (A-Z) letters have been rotated by 13 positions.
+
+Command: ssh bandit11@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -247,6 +268,8 @@ What I learned: ROT13 is a simple substitution cipher that's trivial to reverse,
 Bandit Level 12 → Level 13
 
 Challenge: The password is stored in data.txt, which is a hexdump of a file that has been compressed repeatedly. Work in a temporary directory.
+
+Command: ssh bandit12@bandit.labs.overthewire.org -p 2220
 
 Solution:
 
@@ -277,9 +300,18 @@ The layers alternate between gzip, bzip2 and tar several times before the final 
 Password: qQYQiHOBPR8zR61qxYqX45quvihF2uzk
 
 What I learned: Never trust a file's name. file tells you what it really is, and repeating a check-then-unpack loop works for as many layers as there are.
+
 Bandit Level 13 → Level 14
 
 Challenge: The password for the next level is stored in /etc/bandit_pass/bandit14 and can only be read by user bandit14. There's no password this time. Instead, the home directory contains a private SSH key that can be used to log in as bandit14.
+
+Command:
+
+bash
+ssh bandit13@bandit.labs.overthewire.org -p 2220
+ssh -i ssh.txt bandit14@bandit.labs.overthewire.org -p 2220
+
+The first logs in as bandit13 to read the key. The second runs on my own machine with the key saved as ssh.txt, and logs in as bandit14.
 
 Solution:
 
@@ -310,6 +342,62 @@ I created a file on my machine, pasted the whole key into it, and used -i to tel
 chmod 600 restricts the file to my user only, because SSH rejects private keys that other users can read
 As bandit14, I can read /etc/bandit_pass/bandit14, which holds the password used for the next level
 
-Password: not applicable, ssh.txt file contains private key value needed to auth and log into bandit14.
+Password: [password here]
 
 What I learned: SSH can log in with a private key instead of a password, and key files need tight permissions (chmod 600). I also learned that a key generated on my own machine wouldn't work, because the server only accepts keys that were set up on the account in advance.
+
+Bandit Level 14 → Level 15
+
+Challenge: The password for the next level is retrieved by submitting the password of the current level to port 30000 on localhost.
+
+Command: ssh bandit14@bandit.labs.overthewire.org -p 2220
+
+Solution:
+
+bash
+cat /etc/bandit_pass/bandit14
+telnet localhost 30000
+
+Then paste the bandit14 password at the prompt and press Enter. The service replies with Correct! followed by the password for bandit15.
+
+Explanation:
+
+cat /etc/bandit_pass/bandit14 prints the current level's password. It's a file that only bandit14 can read, which is why the last level needed the SSH key
+telnet opens a plain text connection to a service on another host. The format is telnet [options] [host [port]]
+Here the host is localhost (this same machine) and the port is 30000, both given in the level description
+Something is listening on that port, and it waits for a line of text
+Once connected, I submit the bandit14 password. The service checks it, prints Correct!, and returns the password for bandit15
+Connecting to localhost works for this level. It's SSH that the game blocks from the server to itself, not other connections
+Telnet sends everything unencrypted, which is why it's no longer used for logins. It's still handy as a quick way to talk to a service on a port
+nc localhost 30000 (netcat) would do the same job
+
+Password: aaWecNkG4FhxJQxz07uiwzVP6bJiYS65
+
+What I learned: A service doesn't have to be a website or a login. Any program can listen on a port and respond to text, and telnet lets me talk to it directly. A port number identifies which service on a host I'm connecting to.
+
+Bandit Level 15 → Level 16
+
+Challenge: The password for the next level is retrieved by submitting the password of the current level to port 30001 on localhost using SSL/TLS encryption.
+
+Command: ssh bandit15@bandit.labs.overthewire.org -p 2220
+
+Solution:
+
+bash
+openssl s_client localhost:30001
+
+Then paste the bandit15 password at the prompt and press Enter. The service replies with Correct! followed by the password for bandit16.
+
+Explanation:
+
+This is the same idea as the last level, but the service on port 30001 only accepts encrypted connections, so plain telnet won't work
+openssl s_client is a command-line client that opens an SSL/TLS connection to a host and port and then lets me type into it like a telnet session
+localhost:30001 is the host and port in host:port form. Newer versions of openssl accept it directly, and -connect localhost:30001 is the older, equivalent way to write it
+On connecting, openssl prints details about the handshake and the server's certificate before waiting for input
+I submit the bandit15 password, and the service checks it and returns the bandit16 password
+If it prints DONE, RENEGOTIATING or KEYUPDATE, or closes the connection after I paste, s_client is treating my input as one of its own commands. Lines starting with certain letters can trigger these. The "CONNECTED COMMANDS" section of man s_client explains this, and -quiet turns those commands off
+
+Password: kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
+
+What I learned: SSL/TLS encrypts the traffic between me and the service, so unlike telnet, it can't be read in transit. openssl s_client gives me a way to talk to a TLS service by hand, and I should check the man page when a tool acts strangely.
+
