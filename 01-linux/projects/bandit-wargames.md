@@ -401,3 +401,13 @@ Password: kS0Hf0u5HiXFwKMKFqXvPdOTNGGa0X8V
 
 What I learned: SSL/TLS encrypts the traffic between me and the service, so unlike telnet, it can't be read in transit. openssl s_client gives me a way to talk to a TLS service by hand, and I should check the man page when a tool acts strangely.
 
+OverTheWire Bandit: Level 16 → 17
+
+Goal: send the level 16 password to the one SSL port in 31000–32000 that doesn't echo. It returns an RSA key.
+Find it: nmap -sV -p 31000-32000 localhost. Pick the ssl/unknown port, not ssl/echo.
+Connect: openssl s_client -connect localhost:<PORT> -quiet -nocommands, then paste the password.
+Gotcha: the password starts with k, so s_client read it as a command (KEYUPDATE). -nocommands stops that.
+Save the key: nano sshkey.private, paste from the BEGIN line to the END line.
+Permissions: chmod 600 sshkey.private, because ssh rejects keys others can read.
+Log in: ssh -i sshkey.private bandit17@localhost -p 2220, then cat /etc/bandit_pass/bandit17.
+Lesson: scan before probing, don't assume the port list, and read -msg output to spot echo servers.
